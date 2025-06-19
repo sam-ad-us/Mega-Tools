@@ -1,0 +1,9 @@
+body { background: #f8f9fa; }
+.ad-space { min-height: 90px; background: #e9ecef; margin: 20px 0; display: flex; align-items: center; justify-content: center; color: #888; font-size: 1.2em; border-radius: 8px; }
+.card { box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+fetch('../header.html')
+  .then(res => res.text())
+  .then(data => {
+    document.body.insertAdjacentHTML('afterbegin', data);
+  });

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Image Resizer - MultiTools</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .drop-zone {
+      border: 2px dashed #6c757d;
+      border-radius: 8px;
+      padding: 40px;
+      text-align: center;
+      color: #6c757d;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .drop-zone.dragover {
+      background: #f8f9fa;
+    }
+    .preview-img {
+      max-width: 100%;
+      max-height: 200px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header will be injected here -->
+  <main class="container my-5">
+    <h1 class="mb-4">Image Resizer</h1>
+    <div class="mb-3">
+      <div id="dropZone" class="drop-zone">
+        Drag & Drop images here or <label for="fileInput" class="text-primary" style="cursor:pointer;">browse</label>
+        <input type="file" id="fileInput" accept="image/*" multiple style="display:none;">
+        <div class="small mt-2">Supported: 1KB - 50MB, Images only, Batch supported</div>
+      </div>
+    </div>
+    <form id="resizeForm" class="row g-3 align-items-end mb-4">
+      <div class="col-md-3">
+        <label class="form-label">Resize by</label>
+        <select class="form-select" id="resizeMode">
+          <option value="pixels">Pixels</option>
+          <option value="percent">Percentage</option>
+        </select>
+      </div>
+      <div class="col-md-3 mode-pixels">
+        <label class="form-label">Width (px)</label>
+        <input type="number" class="form-control" id="widthInput" min="1">
+      </div>
+      <div class="col-md-3 mode-pixels">
+        <label class="form-label">Height (px)</label>
+        <input type="number" class="form-control" id="heightInput" min="1">
+      </div>
+      <div class="col-md-2 mode-pixels">
+        <div class="form-check mt-4">
+          <input class="form-check-input" type="checkbox" id="aspectRatio" checked>
+          <label class="form-check-label" for="aspectRatio">Maintain Aspect Ratio</label>
+        </div>
+      </div>
+      <div class="col-md-3 mode-percent d-none">
+        <label class="form-label">Resize (%)</label>
+        <input type="number" class="form-control" id="percentInput" min="1" max="1000" value="100">
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Resize</button>
+      </div>
+    </form>
+    <div id="errorMsg" class="alert alert-danger d-none"></div>
+    <div id="previewArea" class="row g-4"></div>
+    <div class="ad-space mt-4">Ad Space</div>
+  </main>
+  <!-- Footer will be injected here -->
+  <script src="../assets/js/header.js"></script>
+  <script src="../assets/js/footer.js"></script>
+  <script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const resizeForm = document.getElementById('resizeForm');
+    const resizeMode = document.getElementById('resizeMode');
+    const widthInput = document.getElementById('widthInput');
+    const heightInput = document.getElementById('heightInput');
+    const percentInput = document.getElementById('percentInput');
+    const aspectRatio = document.getElementById('aspectRatio');
+    const errorMsg = document.getElementById('errorMsg');
+    const previewArea = document.getElementById('previewArea');
+    let images = [];
+    let originalDimensions = [];
+
+    // Drag & Drop events
+    dropZone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+    dropZone.addEventListener('dragleave', e => {
+      dropZone.classList.remove('dragover');
+    });
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      handleFiles(e.dataTransfer.files);
+    });
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+    // Resize mode toggle
+    resizeMode.addEventListener('change', () => {
+      document.querySelectorAll('.mode-pixels').forEach(el => el.classList.toggle('d-none', resizeMode.value !== 'pixels'));
+      document.querySelectorAll('.mode-percent').forEach(el => el.classList.toggle('d-none', resizeMode.value !== 'percent'));
+    });
+
+    // Maintain aspect ratio logic
+    widthInput.addEventListener('input', () => {
+      if (aspectRatio.checked && images.length === 1 && originalDimensions[0]) {
+        const ratio = originalDimensions[0].height / originalDimensions[0].width;
+        heightInput.value = Math.round(widthInput.value * ratio);
+      }
+    });
+    heightInput.addEventListener('input', () => {
+      if (aspectRatio.checked && images.length === 1 && originalDimensions[0]) {
+        const ratio = originalDimensions[0].width / originalDimensions[0].height;
+        widthInput.value = Math.round(heightInput.value * ratio);
+      }
+    });
+    aspectRatio.addEventListener('change', () => {
+      if (aspectRatio.checked && images.length === 1 && originalDimensions[0]) {
+        const ratio = originalDimensions[0].height / originalDimensions[0].width;
+        heightInput.value = Math.round(widthInput.value * ratio);
+      }
+    });
+
+    function handleFiles(fileList) {
+      errorMsg.classList.add('d-none');
+      images = [];
+      originalDimensions = [];
+      previewArea.innerHTML = '';
+      const files = Array.from(fileList);
+      for (const file of files) {
+        if (!file.type.startsWith('image/')) {
+          showError('Only image files are supported.');
+          return;
+        }
+        if (file.size < 1024 || file.size > 50 * 1024 * 1024) {
+          showError('File size must be between 1KB and 50MB.');
+          return;
+        }
+        images.push(file);
+      }
+      if (images.length === 1) {
+        // Load original dimensions for aspect ratio
+        const img = new Image();
+        img.onload = function() {
+          originalDimensions[0] = { width: img.width, height: img.height };
+          widthInput.value = img.width;
+          heightInput.value = img.height;
+        };
+        img.src = URL.createObjectURL(images[0]);
+      }
+    }
+
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorMsg.classList.remove('d-none');
+    }
+
+    resizeForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      if (images.length === 0) {
+        showError('Please upload at least one image.');
+        return;
+      }
+      errorMsg.classList.add('d-none');
+      previewArea.innerHTML = '';
+      for (let i = 0; i < images.length; i++) {
+        const file = images[i];
+        const img = new Image();
+        img.onload = function() {
+          let newWidth, newHeight;
+          if (resizeMode.value === 'pixels') {
+            newWidth = parseInt(widthInput.value);
+            newHeight = parseInt(heightInput.value);
+            if (!newWidth || !newHeight) {
+              showError('Please enter valid width and height.');
+              return;
+            }
+          } else {
+            const percent = parseInt(percentInput.value);
+            if (!percent || percent < 1 || percent > 1000) {
+              showError('Please enter a valid percentage (1-1000).');
+              return;
+            }
+            newWidth = Math.round(img.width * percent / 100);
+            newHeight = Math.round(img.height * percent / 100);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = newWidth;
+          canvas.height = newHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, newWidth, newHeight);
+          canvas.toBlob(blob => {
+            const url = URL.createObjectURL(blob);
+            const col = document.createElement('div');
+            col.className = 'col-md-4';
+            col.innerHTML = `
+              <div class="card">
+                <img src="${url}" class="card-img-top preview-img" alt="Resized Preview">
+                <div class="card-body">
+                  <a href="${url}" download="resized-${file.name}" class="btn btn-success btn-sm w-100 mb-2">Download</a>
+                  <div class="small text-muted">${newWidth} x ${newHeight} px<br>${(blob.size/1024).toFixed(1)} KB</div>
+                </div>
+              </div>
+            `;
+            previewArea.appendChild(col);
+          }, file.type || 'image/png');
+        };
+        img.onerror = function() {
+          showError('Failed to load image.');
+        };
+        img.src = URL.createObjectURL(file);
+      }
+    });
+  </script>
+</body>
+</html> 

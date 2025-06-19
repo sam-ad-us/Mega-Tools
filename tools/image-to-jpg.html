@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Image to JPG Converter - MultiTools</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .drop-zone {
+      border: 2px dashed #007bff;
+      border-radius: 10px;
+      padding: 40px;
+      text-align: center;
+      color: #888;
+      background: #f8f9fa;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .drop-zone.dragover {
+      border-color: #0056b3;
+      background: #e9ecef;
+    }
+    .preview-img {
+      max-width: 120px;
+      max-height: 120px;
+      margin: 10px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header will be injected here -->
+  <main class="container my-5">
+    <h1 class="mb-4">Image to JPG Converter</h1>
+    <div id="drop-area" class="drop-zone mb-3">
+      <div id="drop-text">Drag & Drop images here or <span class="text-primary">Click to Upload</span><br><small>(Max 5 images, 1KB - 50MB each)</small></div>
+      <input type="file" id="file-input" accept="image/*" multiple style="display:none" />
+    </div>
+    <div id="file-list" class="mb-3"></div>
+    <button id="convert-btn" class="btn btn-primary mb-4" disabled>Convert to JPG</button>
+    <div id="result-area" class="row"></div>
+    <div class="ad-space mt-4">Ad Space</div>
+  </main>
+  <!-- Footer will be injected here -->
+  <script src="../assets/js/header.js"></script>
+  <script src="../assets/js/footer.js"></script>
+  <script>
+    const dropArea = document.getElementById('drop-area');
+    const fileInput = document.getElementById('file-input');
+    const fileList = document.getElementById('file-list');
+    const convertBtn = document.getElementById('convert-btn');
+    const resultArea = document.getElementById('result-area');
+    let selectedFiles = [];
+
+    // Drag & Drop events
+    dropArea.addEventListener('click', () => fileInput.click());
+    dropArea.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropArea.classList.add('dragover');
+    });
+    dropArea.addEventListener('dragleave', e => {
+      e.preventDefault();
+      dropArea.classList.remove('dragover');
+    });
+    dropArea.addEventListener('drop', e => {
+      e.preventDefault();
+      dropArea.classList.remove('dragover');
+      handleFiles(e.dataTransfer.files);
+    });
+    fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+    function handleFiles(files) {
+      let arr = Array.from(files);
+      // Filter: max 5, 1KB-50MB, image only
+      arr = arr.filter(f => f.type.startsWith('image/') && f.size >= 1024 && f.size <= 50 * 1024 * 1024);
+      if (selectedFiles.length + arr.length > 5) {
+        alert('You can only upload up to 5 images at a time.');
+        arr = arr.slice(0, 5 - selectedFiles.length);
+      }
+      selectedFiles = selectedFiles.concat(arr);
+      if (selectedFiles.length > 5) selectedFiles = selectedFiles.slice(0, 5);
+      renderFileList();
+    }
+
+    function renderFileList() {
+      fileList.innerHTML = '';
+      if (selectedFiles.length === 0) {
+        convertBtn.disabled = true;
+        return;
+      }
+      selectedFiles.forEach((file, idx) => {
+        const div = document.createElement('div');
+        div.className = 'd-flex align-items-center mb-2';
+        div.innerHTML = `<span class=\"me-2\">${file.name} (${(file.size/1024).toFixed(1)} KB)</span>
+          <button class=\"btn btn-sm btn-danger ms-auto\" onclick=\"removeFile(${idx})\">Remove</button>`;
+        fileList.appendChild(div);
+      });
+      convertBtn.disabled = false;
+    }
+
+    window.removeFile = function(idx) {
+      selectedFiles.splice(idx, 1);
+      renderFileList();
+    }
+
+    convertBtn.addEventListener('click', async () => {
+      resultArea.innerHTML = '';
+      for (const file of selectedFiles) {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        await new Promise(resolve => {
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+          img.src = url;
+        });
+        // Draw to canvas and export as JPG
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob(blob => {
+          const jpgUrl = URL.createObjectURL(blob);
+          const col = document.createElement('div');
+          col.className = 'col-md-3 text-center mb-4';
+          col.innerHTML = `
+            <img src="${jpgUrl}" class="preview-img mb-2" alt="JPG Preview">
+            <div>
+              <a href="${jpgUrl}" download="${file.name.replace(/\.[^.]+$/, '')}.jpg" class="btn btn-success btn-sm">Download JPG</a>
+            </div>
+          `;
+          resultArea.appendChild(col);
+        }, 'image/jpeg', 0.92); // 0.92 is high quality
+        URL.revokeObjectURL(url);
+      }
+    });
+  </script>
+</body>
+</html> 

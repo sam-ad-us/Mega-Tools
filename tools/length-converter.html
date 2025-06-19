@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Length Converter - MultiTools</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <!-- Header will be injected here -->
+  <main class="container my-5">
+    <h1 class="mb-4">Length Converter</h1>
+    <form class="row g-3 align-items-end mb-4">
+      <div class="col-md-4">
+        <label class="form-label">Enter Length</label>
+        <input type="number" class="form-control" id="lengthInput" min="0" step="any" placeholder="Enter value">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">From</label>
+        <select class="form-select" id="fromUnit">
+          <option value="meter">Meter (m)</option>
+          <option value="kilometer">Kilometer (km)</option>
+          <option value="centimeter">Centimeter (cm)</option>
+          <option value="millimeter">Millimeter (mm)</option>
+          <option value="micrometer">Micrometer (μm)</option>
+          <option value="nanometer">Nanometer (nm)</option>
+          <option value="mile">Mile (mi)</option>
+          <option value="yard">Yard (yd)</option>
+          <option value="foot">Foot (ft)</option>
+          <option value="inch">Inch (in)</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">To</label>
+        <select class="form-select" id="toUnit">
+          <option value="meter">Meter (m)</option>
+          <option value="kilometer">Kilometer (km)</option>
+          <option value="centimeter">Centimeter (cm)</option>
+          <option value="millimeter">Millimeter (mm)</option>
+          <option value="micrometer">Micrometer (μm)</option>
+          <option value="nanometer">Nanometer (nm)</option>
+          <option value="mile">Mile (mi)</option>
+          <option value="yard">Yard (yd)</option>
+          <option value="foot">Foot (ft)</option>
+          <option value="inch">Inch (in)</option>
+        </select>
+      </div>
+    </form>
+    <div id="resultArea" class="alert alert-info d-none"></div>
+    <div class="ad-space mt-4">Ad Space</div>
+  </main>
+  <!-- Footer will be injected here -->
+  <script src="../assets/js/header.js"></script>
+  <script src="../assets/js/footer.js"></script>
+  <script>
+    const lengthInput = document.getElementById('lengthInput');
+    const fromUnit = document.getElementById('fromUnit');
+    const toUnit = document.getElementById('toUnit');
+    const resultArea = document.getElementById('resultArea');
+
+    // Conversion factors to meter
+    const toMeter = {
+      meter: 1,
+      kilometer: 1000,
+      centimeter: 0.01,
+      millimeter: 0.001,
+      micrometer: 1e-6,
+      nanometer: 1e-9,
+      mile: 1609.344,
+      yard: 0.9144,
+      foot: 0.3048,
+      inch: 0.0254
+    };
+
+    function convertLength() {
+      const value = parseFloat(lengthInput.value);
+      if (isNaN(value) || value < 0) {
+        resultArea.classList.add('d-none');
+        return;
+      }
+      const from = fromUnit.value;
+      const to = toUnit.value;
+      // Convert to meter, then to target unit
+      const meters = value * toMeter[from];
+      const result = meters / toMeter[to];
+      resultArea.textContent = `${value} ${fromUnit.options[fromUnit.selectedIndex].text} = ${result} ${toUnit.options[toUnit.selectedIndex].text}`;
+      resultArea.classList.remove('d-none');
+    }
+
+    lengthInput.addEventListener('input', convertLength);
+    fromUnit.addEventListener('change', convertLength);
+    toUnit.addEventListener('change', convertLength);
+  </script>
+</body>
+</html> 

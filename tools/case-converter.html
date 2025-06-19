@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Case Converter - MultiTools</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .case-btns .btn {
+      margin-bottom: 6px;
+    }
+    .stats {
+      font-size: 14px;
+      color: #555;
+    }
+    textarea.form-control {
+      background: #fff;
+      color: #222;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header will be injected here -->
+  <main class="container my-5">
+    <h1 class="mb-4">Case Converter</h1>
+    <div class="mb-3">
+      <label for="textInput" class="form-label">Type or paste your content here</label>
+      <textarea id="textInput" class="form-control" rows="7" maxlength="5000" placeholder="Type or paste your content here..."></textarea>
+    </div>
+    <div class="case-btns d-flex flex-wrap gap-2 mb-2">
+      <button class="btn btn-outline-primary btn-sm" onclick="convertCase('sentence')">Sentence case</button>
+      <button class="btn btn-outline-primary btn-sm" onclick="convertCase('lower')">lower case</button>
+      <button class="btn btn-outline-primary btn-sm" onclick="convertCase('upper')">UPPER CASE</button>
+      <button class="btn btn-outline-primary btn-sm" onclick="convertCase('capitalized')">Capitalized Case</button>
+      <button class="btn btn-outline-primary btn-sm" onclick="convertCase('alternating')">aLtErNaTiNg cAsE</button>
+      <button class="btn btn-outline-primary btn-sm" onclick="convertCase('title')">Title Case</button>
+      <button class="btn btn-outline-primary btn-sm" onclick="convertCase('inverse')">InVeRsE CaSe</button>
+      <button class="btn btn-outline-secondary btn-sm" onclick="copyText()">Copy to Clipboard</button>
+      <button class="btn btn-outline-secondary btn-sm" onclick="clearText()">Clear</button>
+      <button class="btn btn-outline-success btn-sm" onclick="downloadText()">Download Text</button>
+    </div>
+    <div class="stats mt-2" id="stats"></div>
+    <div class="ad-space mt-4">Ad Space</div>
+  </main>
+  <!-- Footer will be injected here -->
+  <script src="../assets/js/header.js"></script>
+  <script src="../assets/js/footer.js"></script>
+  <script>
+    const textInput = document.getElementById('textInput');
+    const stats = document.getElementById('stats');
+    const MAX_CHARS = 5000;
+
+    function updateStats() {
+      const val = textInput.value;
+      const charCount = val.length;
+      const wordCount = val.trim() ? val.trim().split(/\s+/).length : 0;
+      const sentenceCount = val.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
+      const lineCount = val.split(/\n/).length;
+      stats.textContent = `Character Count: ${charCount} | Word Count: ${wordCount} | Sentence Count: ${sentenceCount} | Line Count: ${lineCount}`;
+    }
+
+    textInput.addEventListener('input', function() {
+      if (textInput.value.length > MAX_CHARS) {
+        alert('Maximum 5000 characters only!');
+        textInput.value = textInput.value.slice(0, MAX_CHARS);
+      }
+      updateStats();
+    });
+
+    function convertCase(type) {
+      let val = textInput.value;
+      switch(type) {
+        case 'sentence':
+          val = val.toLowerCase().replace(/(^|[.!?]\s+)([a-z])/g, (m, p1, p2) => p1 + p2.toUpperCase());
+          break;
+        case 'lower':
+          val = val.toLowerCase();
+          break;
+        case 'upper':
+          val = val.toUpperCase();
+          break;
+        case 'capitalized':
+          val = val.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+          break;
+        case 'alternating':
+          val = val.split('').map((c, i) => i % 2 === 0 ? c.toLowerCase() : c.toUpperCase()).join('');
+          break;
+        case 'title':
+          val = val.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+          break;
+        case 'inverse':
+          val = val.split('').map(c => c === c.toLowerCase() ? c.toUpperCase() : c.toLowerCase()).join('');
+          break;
+      }
+      textInput.value = val.slice(0, MAX_CHARS);
+      updateStats();
+    }
+
+    function copyText() {
+      textInput.select();
+      document.execCommand('copy');
+    }
+    function clearText() {
+      textInput.value = '';
+      updateStats();
+    }
+    function downloadText() {
+      const blob = new Blob([textInput.value], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'converted-text.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+    // Initial stats
+    updateStats();
+  </script>
+</body>
+</html> 
