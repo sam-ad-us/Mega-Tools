@@ -11,11 +11,76 @@
   <!-- Header will be injected here -->
   <main class="container my-5">
     <h1 class="mb-4">Age Calculator</h1>
-    <div class="alert alert-info">Tool UI coming soon!</div>
+    <form id="ageForm" class="mb-4">
+      <div class="mb-3">
+        <label for="dob" class="form-label">Enter your Date of Birth:</label>
+        <input type="date" class="form-control" id="dob" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Show Age In:</label><br>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" id="inYears" checked>
+          <label class="form-check-label" for="inYears">Years</label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" id="inDays">
+          <label class="form-check-label" for="inDays">Days</label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" id="inMinutes">
+          <label class="form-check-label" for="inMinutes">Minutes</label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" id="inSeconds">
+          <label class="form-check-label" for="inSeconds">Seconds</label>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Calculate Age</button>
+    </form>
+    <div id="result" class="alert alert-success d-none"></div>
     <div class="ad-space mt-4">Ad Space</div>
   </main>
   <!-- Footer will be injected here -->
   <script src="../assets/js/header.js"></script>
   <script src="../assets/js/footer.js"></script>
+  <script>
+    document.getElementById('ageForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const dob = document.getElementById('dob').value;
+      const inYears = document.getElementById('inYears').checked;
+      const inDays = document.getElementById('inDays').checked;
+      const inMinutes = document.getElementById('inMinutes').checked;
+      const inSeconds = document.getElementById('inSeconds').checked;
+      const resultDiv = document.getElementById('result');
+      if (!dob) {
+        resultDiv.className = 'alert alert-danger';
+        resultDiv.textContent = 'Please enter your date of birth.';
+        resultDiv.classList.remove('d-none');
+        return;
+      }
+      const dobDate = new Date(dob);
+      const now = new Date();
+      if (dobDate > now) {
+        resultDiv.className = 'alert alert-danger';
+        resultDiv.textContent = 'Date of birth cannot be in the future!';
+        resultDiv.classList.remove('d-none');
+        return;
+      }
+      const diffMs = now - dobDate;
+      const diffYears = now.getFullYear() - dobDate.getFullYear() - (now < new Date(now.getFullYear(), dobDate.getMonth(), dobDate.getDate()) ? 1 : 0);
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      const diffMinutes = Math.floor(diffMs / (1000 * 60));
+      const diffSeconds = Math.floor(diffMs / 1000);
+      let output = '<strong>Your Age:</strong><ul>';
+      if (inYears) output += `<li><b>${diffYears}</b> years</li>`;
+      if (inDays) output += `<li><b>${diffDays}</b> days</li>`;
+      if (inMinutes) output += `<li><b>${diffMinutes}</b> minutes</li>`;
+      if (inSeconds) output += `<li><b>${diffSeconds}</b> seconds</li>`;
+      output += '</ul>';
+      resultDiv.className = 'alert alert-success';
+      resultDiv.innerHTML = output;
+      resultDiv.classList.remove('d-none');
+    });
+  </script>
 </body>
 </html> 
