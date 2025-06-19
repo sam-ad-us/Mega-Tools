@@ -11,11 +11,67 @@
   <!-- Header will be injected here -->
   <main class="container my-5">
     <h1 class="mb-4">BMI Calculator</h1>
-    <div class="alert alert-info">Tool UI coming soon!</div>
+    <form id="bmiForm" class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label for="height" class="form-label">Height</label>
+        <div class="input-group">
+          <input type="number" class="form-control" id="height" placeholder="e.g. 170" min="0" step="any" required>
+          <select class="form-select" id="heightUnit">
+            <option value="cm">cm</option>
+            <option value="in">inch</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <label for="weight" class="form-label">Weight</label>
+        <div class="input-group">
+          <input type="number" class="form-control" id="weight" placeholder="e.g. 65" min="0" step="any" required>
+          <select class="form-select" id="weightUnit">
+            <option value="kg">kg</option>
+            <option value="lb">lb</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-12 d-grid">
+        <button type="submit" class="btn btn-primary">Calculate BMI</button>
+      </div>
+    </form>
+    <div id="result" class="alert d-none"></div>
     <div class="ad-space mt-4">Ad Space</div>
   </main>
   <!-- Footer will be injected here -->
   <script src="../assets/js/header.js"></script>
   <script src="../assets/js/footer.js"></script>
+  <script>
+    document.getElementById('bmiForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      let height = parseFloat(document.getElementById('height').value);
+      let weight = parseFloat(document.getElementById('weight').value);
+      const heightUnit = document.getElementById('heightUnit').value;
+      const weightUnit = document.getElementById('weightUnit').value;
+      const resultDiv = document.getElementById('result');
+      if (isNaN(height) || isNaN(weight) || height <= 0 || weight <= 0) {
+        resultDiv.className = 'alert alert-danger';
+        resultDiv.textContent = 'Please enter valid height and weight.';
+        resultDiv.classList.remove('d-none');
+        return;
+      }
+      // Convert height to meters
+      if (heightUnit === 'cm') height = height / 100;
+      else if (heightUnit === 'in') height = height * 0.0254;
+      // Convert weight to kg
+      if (weightUnit === 'lb') weight = weight * 0.453592;
+      // Calculate BMI
+      const bmi = weight / (height * height);
+      let category = '';
+      if (bmi < 18.5) category = 'Underweight';
+      else if (bmi < 25) category = 'Normal weight';
+      else if (bmi < 30) category = 'Overweight';
+      else category = 'Obese';
+      resultDiv.className = 'alert alert-success';
+      resultDiv.innerHTML = `<strong>Your BMI:</strong> ${bmi.toFixed(2)}<br><strong>Category:</strong> ${category}`;
+      resultDiv.classList.remove('d-none');
+    });
+  </script>
 </body>
 </html> 

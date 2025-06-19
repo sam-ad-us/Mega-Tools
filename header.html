@@ -1,6 +1,41 @@
 <header class="navbar navbar-expand-lg navbar-light bg-light">
-  <a class="navbar-brand" href="index.html">MegaTools</a>
-  <form class="form-inline my-2 my-lg-0 ml-auto">
-    <input id="tool-search" class="form-control mr-sm-2" type="search" placeholder="Search tools..." aria-label="Search">
-  </form>
+  <div class="container">
+    <a class="navbar-brand" href="../index.html">MegaTools</a>
+    <div class="position-relative flex-grow-1 mx-4">
+      <input id="tool-search" class="form-control" type="search" placeholder="Search tools..." aria-label="Search">
+      <div id="search-results" class="position-absolute w-100 mt-1 d-none">
+        <div class="list-group shadow-sm">
+          <!-- Search results will be populated here -->
+        </div>
+      </div>
+    </div>
+  </div>
 </header>
+
+<style>
+#search-results {
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 1000;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+.search-result-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.search-result-item:hover {
+  background-color: #f8f9fa;
+}
+.search-result-category {
+  font-size: 0.8em;
+  color: #6c757d;
+}
+.highlight {
+  background-color: #fff3cd;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+</style>

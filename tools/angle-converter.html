@@ -11,11 +11,94 @@
   <!-- Header will be injected here -->
   <main class="container my-5">
     <h1 class="mb-4">Angle Converter</h1>
-    <div class="alert alert-info">Tool UI coming soon!</div>
+    <form id="angleForm" class="row g-3 mb-4">
+      <div class="col-md-4">
+        <label for="angleValue" class="form-label">Enter Angle:</label>
+        <input type="number" class="form-control" id="angleValue" placeholder="e.g. 45" required step="any">
+      </div>
+      <div class="col-md-4">
+        <label for="angleUnit" class="form-label">Unit:</label>
+        <select class="form-select" id="angleUnit">
+          <option value="deg">Degrees (°)</option>
+          <option value="rad">Radians (rad)</option>
+          <option value="grad">Gradians (gon)</option>
+        </select>
+      </div>
+      <div class="col-md-4 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary w-100">Convert & Calculate</button>
+      </div>
+    </form>
+    <div id="result" class="d-none">
+      <h5>Converted Angles:</h5>
+      <ul id="angleConversions"></ul>
+      <h5 class="mt-3">Trigonometric Values:</h5>
+      <ul id="trigValues"></ul>
+    </div>
     <div class="ad-space mt-4">Ad Space</div>
   </main>
   <!-- Footer will be injected here -->
   <script src="../assets/js/header.js"></script>
   <script src="../assets/js/footer.js"></script>
+  <script>
+    function toRadians(val, unit) {
+      if (unit === 'deg') return val * Math.PI / 180;
+      if (unit === 'grad') return val * Math.PI / 200;
+      return val; // already radians
+    }
+    function toDegrees(val, unit) {
+      if (unit === 'rad') return val * 180 / Math.PI;
+      if (unit === 'grad') return val * 0.9;
+      return val; // already degrees
+    }
+    function toGrads(val, unit) {
+      if (unit === 'deg') return val * (200/180);
+      if (unit === 'rad') return val * (200/Math.PI);
+      return val; // already grads
+    }
+    function safeTrig(fn, x) {
+      try {
+        let v = fn(x);
+        if (!isFinite(v)) return '∞';
+        return v.toFixed(6);
+      } catch { return 'NaN'; }
+    }
+    document.getElementById('angleForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const val = parseFloat(document.getElementById('angleValue').value);
+      const unit = document.getElementById('angleUnit').value;
+      if (isNaN(val)) return;
+      // Convert to all units
+      let deg, rad, grad;
+      if (unit === 'deg') {
+        deg = val;
+        rad = val * Math.PI / 180;
+        grad = val * (200/180);
+      } else if (unit === 'rad') {
+        rad = val;
+        deg = val * 180 / Math.PI;
+        grad = deg * (200/180);
+      } else {
+        grad = val;
+        deg = val * 0.9;
+        rad = deg * Math.PI / 180;
+      }
+      // Show conversions
+      document.getElementById('angleConversions').innerHTML = `
+        <li><b>${deg.toFixed(6)}</b> Degrees (°)</li>
+        <li><b>${rad.toFixed(6)}</b> Radians (rad)</li>
+        <li><b>${grad.toFixed(6)}</b> Gradians (gon)</li>
+      `;
+      // Trig values
+      document.getElementById('trigValues').innerHTML = `
+        <li>sin: <b>${safeTrig(Math.sin, rad)}</b></li>
+        <li>cos: <b>${safeTrig(Math.cos, rad)}</b></li>
+        <li>tan: <b>${safeTrig(Math.tan, rad)}</b></li>
+        <li>cot: <b>${safeTrig(x => 1/Math.tan(x), rad)}</b></li>
+        <li>sec: <b>${safeTrig(x => 1/Math.cos(x), rad)}</b></li>
+        <li>cosec: <b>${safeTrig(x => 1/Math.sin(x), rad)}</b></li>
+      `;
+      document.getElementById('result').classList.remove('d-none');
+    });
+  </script>
 </body>
 </html> 

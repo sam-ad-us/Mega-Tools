@@ -6,6 +6,7 @@ const tools = [
   { name: "Image Compressor", category: "Image Tools", file: "tools/image-compressor.html" },
   { name: "Image Cropper", category: "Image Tools", file: "tools/image-cropper.html" },
   { name: "Convert Image to Base64", category: "Image Tools", file: "tools/image-to-base64.html" },
+  { name: "GIF Maker", category: "Image Tools", file: "tools/gif-maker.html" },
 
   // Text Tools
   { name: "Character Counter", category: "Text Tools", file: "tools/character-counter.html" },

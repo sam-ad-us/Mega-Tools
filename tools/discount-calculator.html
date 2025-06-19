@@ -5,17 +5,167 @@
   <title>Discount Calculator - MultiTools</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
   <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .calculator-card {
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 20px;
+      background: white;
+    }
+    .result-card {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .discount-value {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #dc3545;
+    }
+    .final-price {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #198754;
+    }
+    .discount-slider {
+      height: 2.5rem;
+    }
+    .price-breakdown {
+      border-left: 3px solid #dee2e6;
+      padding-left: 1rem;
+    }
+  </style>
 </head>
 <body>
   <!-- Header will be injected here -->
   <main class="container my-5">
     <h1 class="mb-4">Discount Calculator</h1>
-    <div class="alert alert-info">Tool UI coming soon!</div>
+    <div class="row">
+      <div class="col-lg-8">
+        <div class="calculator-card mb-4">
+          <form id="discountForm">
+            <div class="row g-4">
+              <div class="col-md-6">
+                <label for="originalPrice" class="form-label">Original Price</label>
+                <div class="input-group input-group-lg">
+                  <span class="input-group-text">₹</span>
+                  <input type="number" class="form-control" id="originalPrice" placeholder="Enter amount" min="0" step="any" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label for="discountPercent" class="form-label">
+                  Discount Percentage: <span id="discountLabel" class="discount-value">15%</span>
+                </label>
+                <input type="range" class="form-range discount-slider" id="discountPercent" min="0" max="100" value="15">
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-primary btn-lg w-100">
+                  <i class="bi bi-calculator me-2"></i>Calculate Discount
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+        
+        <div id="result" class="result-card d-none">
+          <h4 class="mb-4">Price Breakdown</h4>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <div class="text-muted">Original Price:</div>
+                <div class="h4">₹<span id="showOriginal">0</span></div>
+              </div>
+              <div class="mb-3">
+                <div class="text-muted">Discount Amount:</div>
+                <div class="h4 text-danger">- ₹<span id="showDiscount">0</span></div>
+              </div>
+              <div>
+                <div class="text-muted">Final Price:</div>
+                <div class="h3 text-success">₹<span id="showFinal">0</span></div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="price-breakdown">
+                <div class="mb-3">
+                  <i class="bi bi-tag-fill text-danger me-2"></i>
+                  Discount Rate: <span id="showPercent" class="discount-value">0%</span>
+                </div>
+                <div class="mb-3">
+                  <i class="bi bi-piggy-bank-fill text-success me-2"></i>
+                  You Save: ₹<span id="showSavings">0</span>
+                </div>
+                <div>
+                  <i class="bi bi-cash-stack text-primary me-2"></i>
+                  You Pay: <span class="final-price">₹<span id="showPayment">0</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-4">
+        <div class="calculator-card">
+          <h5><i class="bi bi-info-circle me-2"></i>Quick Tips</h5>
+          <ul class="list-unstyled mt-3">
+            <li class="mb-2">
+              <i class="bi bi-check-circle text-success me-2"></i>
+              Use the slider to adjust discount percentage
+            </li>
+            <li class="mb-2">
+              <i class="bi bi-check-circle text-success me-2"></i>
+              Enter price without commas
+            </li>
+            <li class="mb-2">
+              <i class="bi bi-check-circle text-success me-2"></i>
+              Results update instantly
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
     <div class="ad-space mt-4">Ad Space</div>
   </main>
   <!-- Footer will be injected here -->
   <script src="../assets/js/header.js"></script>
   <script src="../assets/js/footer.js"></script>
+  <script>
+    const discountPercent = document.getElementById('discountPercent');
+    const discountLabel = document.getElementById('discountLabel');
+    const resultDiv = document.getElementById('result');
+    
+    // Update discount label when slider moves
+    discountPercent.addEventListener('input', function() {
+      discountLabel.textContent = this.value + '%';
+    });
+    
+    document.getElementById('discountForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const originalPrice = parseFloat(document.getElementById('originalPrice').value);
+      const discount = parseFloat(discountPercent.value);
+      
+      if (isNaN(originalPrice) || originalPrice <= 0) {
+        alert('Please enter a valid price');
+        return;
+      }
+      
+      // Calculate values
+      const discountAmount = (originalPrice * discount) / 100;
+      const finalPrice = originalPrice - discountAmount;
+      
+      // Update display
+      document.getElementById('showOriginal').textContent = originalPrice.toLocaleString('en-IN', {maximumFractionDigits: 2});
+      document.getElementById('showDiscount').textContent = discountAmount.toLocaleString('en-IN', {maximumFractionDigits: 2});
+      document.getElementById('showFinal').textContent = finalPrice.toLocaleString('en-IN', {maximumFractionDigits: 2});
+      document.getElementById('showPercent').textContent = discount + '%';
+      document.getElementById('showSavings').textContent = discountAmount.toLocaleString('en-IN', {maximumFractionDigits: 2});
+      document.getElementById('showPayment').textContent = finalPrice.toLocaleString('en-IN', {maximumFractionDigits: 2});
+      
+      resultDiv.classList.remove('d-none');
+    });
+  </script>
 </body>
 </html> 

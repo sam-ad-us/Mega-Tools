@@ -5,17 +5,203 @@
   <title>Energy Converter - MultiTools</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
   <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .converter-card {
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 20px;
+      background: white;
+    }
+    .result-card {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .conversion-value {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #0d6efd;
+    }
+    .unit-select {
+      font-size: 1.1em;
+    }
+  </style>
 </head>
 <body>
   <!-- Header will be injected here -->
   <main class="container my-5">
     <h1 class="mb-4">Energy Converter</h1>
-    <div class="alert alert-info">Tool UI coming soon!</div>
+    <div class="row">
+      <div class="col-lg-8">
+        <div class="converter-card mb-4">
+          <form id="energyForm">
+            <div class="row g-4">
+              <div class="col-md-4">
+                <label for="energyValue" class="form-label">Value</label>
+                <input type="number" class="form-control form-control-lg" id="energyValue" placeholder="Enter value" min="0" step="any" required>
+              </div>
+              <div class="col-md-4">
+                <label for="fromUnit" class="form-label">From Unit</label>
+                <select class="form-select form-select-lg unit-select" id="fromUnit">
+                  <optgroup label="Common Units">
+                    <option value="J">Joules (J)</option>
+                    <option value="kJ">Kilojoules (kJ)</option>
+                    <option value="cal">Calories (cal)</option>
+                    <option value="kcal">Kilocalories (kcal)</option>
+                    <option value="kWh">Kilowatt-hours (kWh)</option>
+                  </optgroup>
+                  <optgroup label="Other Units">
+                    <option value="BTU">British Thermal Units (BTU)</option>
+                    <option value="eV">Electron Volts (eV)</option>
+                    <option value="therm">Therms</option>
+                    <option value="ftlb">Foot-pounds (ft⋅lb)</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label for="toUnit" class="form-label">To Unit</label>
+                <select class="form-select form-select-lg unit-select" id="toUnit">
+                  <optgroup label="Common Units">
+                    <option value="J">Joules (J)</option>
+                    <option value="kJ">Kilojoules (kJ)</option>
+                    <option value="cal">Calories (cal)</option>
+                    <option value="kcal" selected>Kilocalories (kcal)</option>
+                    <option value="kWh">Kilowatt-hours (kWh)</option>
+                  </optgroup>
+                  <optgroup label="Other Units">
+                    <option value="BTU">British Thermal Units (BTU)</option>
+                    <option value="eV">Electron Volts (eV)</option>
+                    <option value="therm">Therms</option>
+                    <option value="ftlb">Foot-pounds (ft⋅lb)</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-primary btn-lg w-100">
+                  <i class="bi bi-arrow-left-right me-2"></i>Convert Energy
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+        
+        <div id="result" class="result-card d-none">
+          <h4 class="mb-4">Conversion Results</h4>
+          <div class="mb-4">
+            <div class="h3" id="mainResult">
+              <!-- Main conversion result here -->
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <h5>Common Equivalents:</h5>
+              <ul class="list-unstyled" id="commonResults">
+                <!-- Common conversions here -->
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                <small>All conversions are approximate and rounded to 6 decimal places.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-4">
+        <div class="converter-card">
+          <h5><i class="bi bi-lightbulb me-2"></i>Energy Units Guide</h5>
+          <ul class="list-unstyled mt-3">
+            <li class="mb-3">
+              <strong>Joule (J):</strong><br>
+              <small>The SI unit of energy</small>
+            </li>
+            <li class="mb-3">
+              <strong>Calorie (cal):</strong><br>
+              <small>Energy needed to raise 1g of water by 1°C</small>
+            </li>
+            <li class="mb-3">
+              <strong>Kilowatt-hour (kWh):</strong><br>
+              <small>Common unit for electrical energy</small>
+            </li>
+            <li class="mb-3">
+              <strong>BTU:</strong><br>
+              <small>British Thermal Unit, used in HVAC</small>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
     <div class="ad-space mt-4">Ad Space</div>
   </main>
   <!-- Footer will be injected here -->
   <script src="../assets/js/header.js"></script>
   <script src="../assets/js/footer.js"></script>
+  <script>
+    // Conversion factors to Joules (base unit)
+    const toJoules = {
+      'J': 1,
+      'kJ': 1000,
+      'cal': 4.184,
+      'kcal': 4184,
+      'kWh': 3600000,
+      'BTU': 1055.06,
+      'eV': 1.602176634e-19,
+      'therm': 105505585.257348,
+      'ftlb': 1.355818
+    };
+
+    function convert(value, fromUnit, toUnit) {
+      // First convert to Joules
+      const joules = value * toJoules[fromUnit];
+      // Then convert from Joules to target unit
+      return joules / toJoules[toUnit];
+    }
+
+    function formatNumber(num) {
+      if (Math.abs(num) < 0.000001 || Math.abs(num) > 999999999) {
+        return num.toExponential(6);
+      }
+      return num.toLocaleString(undefined, {maximumFractionDigits: 6});
+    }
+
+    document.getElementById('energyForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const value = parseFloat(document.getElementById('energyValue').value);
+      const fromUnit = document.getElementById('fromUnit').value;
+      const toUnit = document.getElementById('toUnit').value;
+      const resultDiv = document.getElementById('result');
+      
+      if (isNaN(value) || value < 0) {
+        alert('Please enter a valid positive number');
+        return;
+      }
+
+      // Calculate main conversion
+      const result = convert(value, fromUnit, toUnit);
+      
+      // Display main result
+      document.getElementById('mainResult').innerHTML = `
+        ${formatNumber(value)} ${fromUnit} = <span class="text-primary">${formatNumber(result)} ${toUnit}</span>
+      `;
+
+      // Show common equivalents (always show Joules, calories, and kWh)
+      const commonUnits = ['J', 'cal', 'kWh'];
+      const commonResults = commonUnits
+        .filter(unit => unit !== fromUnit && unit !== toUnit)
+        .map(unit => {
+          const commonResult = convert(value, fromUnit, unit);
+          return `<li class="mb-2">= ${formatNumber(commonResult)} ${unit}</li>`;
+        })
+        .join('');
+      
+      document.getElementById('commonResults').innerHTML = commonResults;
+      resultDiv.classList.remove('d-none');
+    });
+  </script>
 </body>
 </html> 
